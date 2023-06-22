@@ -11,15 +11,15 @@
 use rand::{self, Rng};
 use pixel_canvas::{Canvas, Color};
 
-fn glider(cells_state: &mut[[bool; 512]; 512], pos: usize) {
+fn glider(cells_state: &mut[[bool; 512]; 512], x: usize, y: usize) {
     // ###
     // #
     //  #
-    cells_state[pos][pos] = true;
-    cells_state[pos][pos-1] = true;
-    cells_state[pos][pos-2] = true;
-    cells_state[pos-1][pos-2] = true;
-    cells_state[pos-2][pos-1] = true; 
+    cells_state[y][x] = true;
+    cells_state[y][x-1] = true;
+    cells_state[y][x-2] = true;
+    cells_state[y-1][x-2] = true;
+    cells_state[y-2][x-1] = true; 
 }
 
 fn main() {
@@ -28,7 +28,8 @@ fn main() {
     // provided.
     let canvas: Canvas<()> = Canvas::new(512, 512)
         .title("Life")
-        .show_ms(true);
+        .show_ms(true)
+        .hidpi(false);
 
     // table with the state of every single cell:
     // alive = true
@@ -36,25 +37,31 @@ fn main() {
     let mut cells_state: [[bool; 512]; 512] = [[false; 512]; 512];
 
     // ###
-    // cells_state[100][100] = true;
-    // cells_state[100][101] = true;
-    // cells_state[100][102] = true;
+    // cells_state[250][250] = true;
+    // cells_state[250][251] = true;
+    // cells_state[250][252] = true;
 
-    cells_state[15][15] = true;
-    cells_state[15][16] = true;
-    cells_state[15][17] = true;
-
-    cells_state[15][500] = true;
-    cells_state[15][501] = true;
-    cells_state[15][502] = true;
-
-    cells_state[500][15] = true;
-    cells_state[500][16] = true;
-    cells_state[500][17] = true;
-
-    cells_state[500][500] = true;
-    cells_state[500][501] = true;
-    cells_state[500][502] = true;
+    // // mosaic center and corners ======
+    // cells_state[250][250] = true;
+    // cells_state[250][251] = true;
+    // cells_state[250][252] = true;
+    // //
+    // cells_state[15][15] = true;
+    // cells_state[15][16] = true;
+    // cells_state[15][17] = true;
+    // //
+    // cells_state[15][500] = true;
+    // cells_state[15][501] = true;
+    // cells_state[15][502] = true;
+    // //
+    // cells_state[500][15] = true;
+    // cells_state[500][16] = true;
+    // cells_state[500][17] = true;
+    // //
+    // cells_state[500][500] = true;
+    // cells_state[500][501] = true;
+    // cells_state[500][502] = true;
+    // // ================================
 
     // cells_state[15][15] = true;
     // cells_state[15][16] = true;
@@ -84,9 +91,19 @@ fn main() {
     // cells_state[149][150] = true;
     // cells_state[149][149] = true;
     
-    // for i in (60..75).step_by(5) {
-    //     glider(&mut cells_state, i);
-    // }
+    // glider triangles
+    glider(&mut cells_state, 50, 50);
+    glider(&mut cells_state, 50, 45);
+    glider(&mut cells_state, 55, 47);
+
+    glider(&mut cells_state, 60, 60);
+    glider(&mut cells_state, 60, 55);
+    glider(&mut cells_state, 65, 57);
+
+    // glider(&mut cells_state, 50, 50);
+    // glider(&mut cells_state, 50, 45);
+    // glider(&mut cells_state, 55, 47);
+    // =================================
 
     // for y in 1..511 {
     //     for x in 1..511 {
@@ -138,14 +155,17 @@ fn main() {
                 // alive
                 if cells_state_lookup[y][x] {
                     // stays alive if it has either 2 or 3 live neighbors 
-                    // if living_neighbors != 2 && living_neighbors != 3 {
-                    if living_neighbors < 2 {
+                    if living_neighbors != 2 && living_neighbors != 3 {
+                    // coocentric expansion in all directions
+                    // if living_neighbors < 2 {
                         cells_state[y][x] = false;
                     }
                     // dead
                 } else {
                     // springs to life only in the case that it has 3 live neighbors
-                    if living_neighbors == 2 {
+                    if living_neighbors == 3 {
+                    // coocentric expansion in all directions
+                    // if living_neighbors == 2 {
                         cells_state[y][x] = true;
                     }
                 }
@@ -154,17 +174,26 @@ fn main() {
                 if cells_state[y][x] {
                     // println!("{},{},{}", (*pixel).r, (*pixel).g, (*pixel).b);
 
-                    let red  = ((*pixel).r + 1) % 255;
-                    let green  = ((*pixel).g + 2) % 254;
-                    let blue = ((*pixel).b + 1) % 255;
+                    // let red  = ((*pixel).r + 2)  % 254;
+                    // let green  = ((*pixel).g + 2) % 254;
+                    // let blue = ((*pixel).b + 2) % 254;
+
+                    // if red == 0 && green == 0 && blue == 0 {
+                    //     red = rand::thread_rng().gen_range(0..50);
+                    //     green = rand::thread_rng().gen_range(0..252);
+                    //     blue = rand::thread_rng().gen_range(0..50);
+                    // }
 
                     *pixel = Color {
                         // r: rand::thread_rng().gen_range(0..255),
                         // g: rand::thread_rng().gen_range(0..255),
                         // b: rand::thread_rng().gen_range(0..255),
-                        r: red,
-                        g: green,
-                        b: blue,
+                        // r: red,
+                        // g: green,
+                        // b: blue,
+                        r: 70,
+                        g: 255,
+                        b: 70,
                     }
                 } else {
                     *pixel = Color {
@@ -175,6 +204,5 @@ fn main() {
                 }
             }
         }
-
     });
 }
