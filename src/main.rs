@@ -4,22 +4,52 @@
 * TODO: maybe paint after rules have been applied to whole table
 * TODO: implement wraping around canvas
 * TODO: figured out a way to zoom in/out of canvas for smaller patterns
-*
+* TODO: update Cells struct to work with dynamic dimensions
 */
 
 // use std::{time, thread, cell};
-use rand::{self, Rng};
 use pixel_canvas::{Canvas, Color};
+use rand::{self, Rng};
 
-fn glider(cells_state: &mut[[bool; 512]; 512], x: usize, y: usize) {
-    // ###
-    // #
-    //  #
-    cells_state[y][x] = true;
-    cells_state[y][x-1] = true;
-    cells_state[y][x-2] = true;
-    cells_state[y-1][x-2] = true;
-    cells_state[y-2][x-1] = true; 
+struct Cells {
+    // table with the state of every single cell:
+    // alive = true
+    // dead = false
+    states: [[bool; 512]; 512],
+}
+
+impl Cells {
+    fn glider(&mut self, x: usize, y: usize) {
+        // ###
+        // #
+        //  #
+        self.states[y][x] = true;
+        self.states[y][x - 1] = true;
+        self.states[y][x - 2] = true;
+        self.states[y - 1][x - 2] = true;
+        self.states[y - 2][x - 1] = true;
+    }
+
+    fn randomize(&mut self) {
+        for y in 1..511 {
+            for x in 1..511 {
+                self.states[y][x] = rand::random();
+            }
+        }
+    }
+
+    fn neighbor_indexes(&self, cell_x: usize, cell_y: usize) -> [(usize, usize); 8] {
+        [
+            (cell_y - 1, cell_x),     // bellow
+            (cell_y + 1, cell_x),     // above
+            (cell_y, cell_x + 1),     // right
+            (cell_y, cell_x - 1),     // left
+            (cell_y + 1, cell_x - 1), // left upper corner
+            (cell_y + 1, cell_x + 1), // right upper corner
+            (cell_y - 1, cell_x - 1), // left lower corner
+            (cell_y - 1, cell_x + 1), // right lower corner
+        ]
+    }
 }
 
 fn main() {
@@ -31,177 +61,150 @@ fn main() {
         .show_ms(true)
         .hidpi(false);
 
-    // table with the state of every single cell:
-    // alive = true
-    // dead = false
-    let mut cells_state: [[bool; 512]; 512] = [[false; 512]; 512];
+    let mut cells = Cells {
+        states: [[false; 512]; 512],
+    };
+
+    // cells.randomize();
 
     // ###
-    // cells_state[250][250] = true;
-    // cells_state[250][251] = true;
-    // cells_state[250][252] = true;
+    // cells.states[250][250] = true;
+    // cells.states[250][251] = true;
+    // cells.states[250][252] = true;
 
     // // mosaic center and corners ======
-    // cells_state[250][250] = true;
-    // cells_state[250][251] = true;
-    // cells_state[250][252] = true;
+    // cells.states[250][250] = true;
+    // cells.states[250][251] = true;
+    // cells.states[250][252] = true;
     // //
-    // cells_state[15][15] = true;
-    // cells_state[15][16] = true;
-    // cells_state[15][17] = true;
+    // cells.states[15][15] = true;
+    // cells.states[15][16] = true;
+    // cells.states[15][17] = true;
     // //
-    // cells_state[15][500] = true;
-    // cells_state[15][501] = true;
-    // cells_state[15][502] = true;
+    // cells.states[15][500] = true;
+    // cells.states[15][501] = true;
+    // cells.states[15][502] = true;
     // //
-    // cells_state[500][15] = true;
-    // cells_state[500][16] = true;
-    // cells_state[500][17] = true;
+    // cells.states[500][15] = true;
+    // cells.states[500][16] = true;
+    // cells.states[500][17] = true;
     // //
-    // cells_state[500][500] = true;
-    // cells_state[500][501] = true;
-    // cells_state[500][502] = true;
+    // cells.states[500][500] = true;
+    // cells.states[500][501] = true;
+    // cells.states[500][502] = true;
     // // ================================
-
-    // cells_state[15][15] = true;
-    // cells_state[15][16] = true;
-    // cells_state[15][17] = true;
-
-    // cells_state[15][15] = true;
-    // cells_state[15][16] = true;
-    // cells_state[15][17] = true;
 
     // ##
     // #
-    // cells_state[300][300] = true;
-    // cells_state[300][299] = true;
-    // cells_state[299][299] = true;
+    // cells.states[300][300] = true;
+    // cells.states[300][299] = true;
+    // cells.states[299][299] = true;
 
     //  #
     // ###
-    // cells_state[200][200] = true;
-    // cells_state[199][200] = true;
-    // cells_state[199][199] = true;
-    // cells_state[199][201] = true;
+    // cells.states[200][200] = true;
+    // cells.states[199][200] = true;
+    // cells.states[199][199] = true;
+    // cells.states[199][201] = true;
 
     // ##
     // ##
-    // cells_state[150][150] = true;
-    // cells_state[150][149] = true;
-    // cells_state[149][150] = true;
-    // cells_state[149][149] = true;
-    
+    // cells.states[150][150] = true;
+    // cells.states[150][149] = true;
+    // cells.states[149][150] = true;
+    // cells.states[149][149] = true;
+
     // glider triangles
-    glider(&mut cells_state, 50, 50);
-    glider(&mut cells_state, 50, 45);
-    glider(&mut cells_state, 55, 47);
+    cells.glider(50, 50);
+    cells.glider(50, 45);
+    cells.glider(55, 47);
 
-    glider(&mut cells_state, 60, 60);
-    glider(&mut cells_state, 60, 55);
-    glider(&mut cells_state, 65, 57);
+    cells.glider(60, 60);
+    cells.glider(60, 55);
+    cells.glider(65, 57);
 
-    // glider(&mut cells_state, 50, 50);
-    // glider(&mut cells_state, 50, 45);
-    // glider(&mut cells_state, 55, 47);
-    // =================================
-
-    // for y in 1..511 {
-    //     for x in 1..511 {
-    //         cells_state[y][x] = rand::random();
-    //     }
-    // }
+    cells.glider(50, 50);
+    cells.glider(50, 45);
+    cells.glider(55, 47);
+    // =======================
 
     // The canvas will render for you at up to 60fps.
     canvas.render(move |_mouse, image| {
-
+        // color to paint cell with
+        let mut cell_color: Color;
+        // counter for living neighbor to apply game rules
+        let mut living_neighbors: u8;
         // Modify the `image` based on your state.
         let width = image.width() as usize;
-        // counter for living neighbor to apply game rules
-        let mut living_neighbors: u32;
-        // used to iterate through the neighbor cells
-        let mut neighbor_indexes: [(usize, usize); 8];
         // we need this to avoid updating the same array we are iterating
-        let cells_state_lookup = cells_state.clone();
+        let states_lookup = cells.states.clone();
 
-        // iterate all pixels and apply rules
         for (y, row) in image.chunks_mut(width).enumerate() {
+            // skip corners for now
+            if y == 0 || y == width - 1 {
+                continue;
+            }
 
             for (x, pixel) in row.iter_mut().enumerate() {
-                living_neighbors = 0;
-
                 // skip corners for now
-                if x == 0 || x == width - 1 || y == 0 || y == width - 1 {
+                if x == 0 || x == width - 1 {
                     continue;
                 }
 
-                neighbor_indexes = [
-                    (y-1, x),   // bellow
-                    (y+1, x),   // above
-                    (y, x+1),   // right
-                    (y, x-1),   // left
-                    (y+1, x-1), // left upper corner
-                    (y+1, x+1), // right upper corner
-                    (y-1, x-1), // left lower corner
-                    (y-1, x+1), // right lower corner
-                ];
-
-                // count living neighbor cells
-                for (ny, nx) in neighbor_indexes {
-                    if cells_state_lookup[ny][nx] {
+                // count living neighbors
+                living_neighbors = 0;
+                for (ny, nx) in cells.neighbor_indexes(x, y) {
+                    if states_lookup[ny][nx] {
                         living_neighbors += 1;
                     }
                 }
 
                 // alive
-                if cells_state_lookup[y][x] {
-                    // stays alive if it has either 2 or 3 live neighbors 
+                if states_lookup[y][x] {
+                    // stays alive if it has either 2 or 3 live neighbors
                     if living_neighbors != 2 && living_neighbors != 3 {
-                    // coocentric expansion in all directions
-                    // if living_neighbors < 2 {
-                        cells_state[y][x] = false;
+                        // coocentric expansion in all directions
+                        // if living_neighbors < 2 {
+                        cells.states[y][x] = false;
                     }
-                    // dead
+                // dead
                 } else {
                     // springs to life only in the case that it has 3 live neighbors
                     if living_neighbors == 3 {
-                    // coocentric expansion in all directions
-                    // if living_neighbors == 2 {
-                        cells_state[y][x] = true;
+                        // coocentric expansion in all directions
+                        // if living_neighbors == 2 {
+                        cells.states[y][x] = true;
                     }
                 }
 
-                // paint cell white if it's alive
-                if cells_state[y][x] {
+                if cells.states[y][x] {
                     // println!("{},{},{}", (*pixel).r, (*pixel).g, (*pixel).b);
 
-                    // let red  = ((*pixel).r + 2)  % 254;
-                    // let green  = ((*pixel).g + 2) % 254;
-                    // let blue = ((*pixel).b + 2) % 254;
+                    // let mut red  = ((*pixel).r + 1)  % 255;
+                    // let mut green  = ((*pixel).g + 2) % 254;
+                    // let mut blue = ((*pixel).b + 1) % 255;
 
                     // if red == 0 && green == 0 && blue == 0 {
                     //     red = rand::thread_rng().gen_range(0..50);
                     //     green = rand::thread_rng().gen_range(0..252);
                     //     blue = rand::thread_rng().gen_range(0..50);
                     // }
-
-                    *pixel = Color {
+                    cell_color = Color {
                         // r: rand::thread_rng().gen_range(0..255),
                         // g: rand::thread_rng().gen_range(0..255),
                         // b: rand::thread_rng().gen_range(0..255),
                         // r: red,
                         // g: green,
                         // b: blue,
-                        r: 70,
-                        g: 255,
-                        b: 70,
+                        r: 150,
+                        g: 150,
+                        b: 150,
                     }
                 } else {
-                    *pixel = Color {
-                        r: 0,
-                        g: 0,
-                        b: 0,
-                    }
+                    cell_color = Color { r: 0, g: 0, b: 0 }
                 }
+
+                *pixel = cell_color;
             }
         }
     });
