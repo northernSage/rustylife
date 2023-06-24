@@ -8,8 +8,11 @@
 */
 
 // use std::{time, thread, cell};
-use pixel_canvas::{Canvas, Color};
+use pixel_canvas::{Canvas, Color, input::{MouseState, glutin::event::{VirtualKeyCode, ElementState}}, prelude::*};
 use rand::{self, Rng};
+
+mod keyboard;
+pub use crate::keyboard::KeyboardState;
 
 struct Cells {
     // table with the state of every single cell:
@@ -28,6 +31,28 @@ impl Cells {
         self.states[y][x - 2] = true;
         self.states[y - 1][x - 2] = true;
         self.states[y - 2][x - 1] = true;
+    }
+
+    fn mosaic(&mut self) {
+        self.states[255][255] = true;
+        self.states[255][256] = true;
+        self.states[255][257] = true;
+        //
+        self.states[10][10] = true;
+        self.states[10][11] = true;
+        self.states[10][12] = true;
+        //
+        self.states[10][500] = true;
+        self.states[10][501] = true;
+        self.states[10][502] = true;
+        //
+        self.states[500][10] = true;
+        self.states[500][11] = true;
+        self.states[500][12] = true;
+        //
+        self.states[500][500] = true;
+        self.states[500][501] = true;
+        self.states[500][502] = true;
     }
 
     fn randomize(&mut self) {
@@ -56,43 +81,23 @@ fn main() {
     // Configure the window that you want to draw in. You can add an event
     // handler to build interactive art. Input handlers for common use are
     // provided.
-    let canvas: Canvas<()> = Canvas::new(512, 512)
+    let canvas = Canvas::new(512, 512)
         .title("Life")
-        .show_ms(true)
-        .hidpi(false);
+        .state(KeyboardState::new())
+        .input(KeyboardState::handle_input);
 
     let mut cells = Cells {
         states: [[false; 512]; 512],
     };
 
-    // cells.randomize();
+    cells.randomize();
+
+    // cells.mosaic();
 
     // ###
     // cells.states[250][250] = true;
     // cells.states[250][251] = true;
     // cells.states[250][252] = true;
-
-    // // mosaic center and corners ======
-    // cells.states[250][250] = true;
-    // cells.states[250][251] = true;
-    // cells.states[250][252] = true;
-    // //
-    // cells.states[15][15] = true;
-    // cells.states[15][16] = true;
-    // cells.states[15][17] = true;
-    // //
-    // cells.states[15][500] = true;
-    // cells.states[15][501] = true;
-    // cells.states[15][502] = true;
-    // //
-    // cells.states[500][15] = true;
-    // cells.states[500][16] = true;
-    // cells.states[500][17] = true;
-    // //
-    // cells.states[500][500] = true;
-    // cells.states[500][501] = true;
-    // cells.states[500][502] = true;
-    // // ================================
 
     // ##
     // #
@@ -115,21 +120,20 @@ fn main() {
     // cells.states[149][149] = true;
 
     // glider triangles
-    cells.glider(50, 50);
-    cells.glider(50, 45);
-    cells.glider(55, 47);
+    // cells.glider(50, 50);
+    // cells.glider(50, 45);
+    // cells.glider(55, 47);
 
-    cells.glider(60, 60);
-    cells.glider(60, 55);
-    cells.glider(65, 57);
+    // cells.glider(60, 60);
+    // cells.glider(60, 55);
+    // cells.glider(65, 57);
 
-    cells.glider(50, 50);
-    cells.glider(50, 45);
-    cells.glider(55, 47);
+    // cells.glider(50, 50);
+    // cells.glider(50, 45);
+    // cells.glider(55, 47);
     // =======================
 
-    // The canvas will render for you at up to 60fps.
-    canvas.render(move |_mouse, image| {
+    canvas.render(move |keyboard, image| {
         // color to paint cell with
         let mut cell_color: Color;
         // counter for living neighbor to apply game rules
@@ -138,6 +142,11 @@ fn main() {
         let width = image.width() as usize;
         // we need this to avoid updating the same array we are iterating
         let states_lookup = cells.states.clone();
+
+        if keyboard.virtual_key_code == VirtualKeyCode::R && keyboard.state == ElementState::Pressed {
+            cells.randomize();
+        }
+    
 
         for (y, row) in image.chunks_mut(width).enumerate() {
             // skip corners for now
@@ -199,9 +208,9 @@ fn main() {
                         r: 150,
                         g: 150,
                         b: 150,
-                    }
+                    };
                 } else {
-                    cell_color = Color { r: 0, g: 0, b: 0 }
+                    cell_color = Color { r: 0, g: 0, b: 0 };
                 }
 
                 *pixel = cell_color;
