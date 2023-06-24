@@ -143,7 +143,7 @@ impl Life {
         .map(|l| l.chars().collect())
         .collect();
 
-        self.cells = Cells::new();
+        // self.cells = Cells::new();
 
         for (y, l) in pattern.iter().enumerate() {
             for (x, c) in l.iter().enumerate() {
@@ -174,8 +174,12 @@ fn main() {
         match keyboard.key_pressed() {
             Some(VirtualKeyCode::Escape) => exit(0),
             Some(VirtualKeyCode::Key1) => life.cells.randomize(),
-            Some(VirtualKeyCode::Key2) => life.load_pattern("patterns/gosper_glider_gun.txt", 255, 255),
-            Some(VirtualKeyCode::Key3) => life.load_pattern("patterns/oscilator.txt", 255, 255),
+            Some(VirtualKeyCode::Key2) => {
+                // puffer array
+                for i in (12..490).step_by(35) {
+                    life.load_pattern("patterns/frothing_puffer.txt", i, 400);
+                }
+            },
             _ => (),
         }
 
@@ -197,10 +201,8 @@ fn main() {
                 life.apply_rules(x, y);
 
                 if life.cells.states[y][x] {
-                    // println!("{},{},{}", (*pixel).r, (*pixel).g, (*pixel).b);
-
                     // let mut red  = ((*pixel).r + 1)  % 255;
-                    // let mut green  = ((*pixel).g + 2) % 254;
+                    // let mut green  = ((*pixel).g + 1) % 255;
                     // let mut blue = ((*pixel).b + 1) % 255;
 
                     // if red == 0 && green == 0 && blue == 0 {
@@ -208,10 +210,8 @@ fn main() {
                     //     green = rand::thread_rng().gen_range(0..252);
                     //     blue = rand::thread_rng().gen_range(0..50);
                     // }
+
                     cell_color = Color {
-                        // r: rand::thread_rng().gen_range(0..255),
-                        // g: rand::thread_rng().gen_range(0..255),
-                        // b: rand::thread_rng().gen_range(0..255),
                         // r: red,
                         // g: green,
                         // b: blue,
