@@ -7,7 +7,7 @@
 * TODO: update Cells struct to work with dynamic dimensions
 */
 
-use std::process::exit;
+use std::{process::exit, fs};
 
 // use std::{time, thread, cell};
 use pixel_canvas::{
@@ -28,11 +28,9 @@ struct Cells {
 
 impl Cells {
     fn new() -> Self {
-        let mut cells: Cells = Self {
+        Self {
             states: [[false; 512]; 512],
-        };
-        cells.randomize();
-        cells
+        }
     }
 
     fn glider(&mut self, x: usize, y: usize) {
@@ -174,6 +172,24 @@ impl Life {
             }
         }
     }
+
+    fn load_pattern(&mut self, path: &str, pos_x: usize, pos_y: usize) {
+        let content = fs::read_to_string(path).expect("Oops!");
+
+        let pattern: Vec<Vec<char>> = content
+        .lines()
+        .skip_while(|l| l.starts_with('!'))
+        .map(|l| l.chars().collect())
+        .collect();
+
+        self.cells = Cells::new();
+
+        for (y, l) in pattern.iter().enumerate() {
+            for (x, c) in l.iter().enumerate() {
+                self.cells.states[y + pos_y][x + pos_x] = *c != '.';
+            }
+        }
+    }
 }
 
 fn main() {
@@ -193,13 +209,16 @@ fn main() {
         // Modify the `image` based on your state.
         let width = image.width() as usize;
 
+        // handle keyboard commands
+        match keyboard.key_pressed() {
+            Some(VirtualKeyCode::Escape) => exit(0),
+            Some(VirtualKeyCode::Key1) => life.cells.randomize(),
+            Some(VirtualKeyCode::Key2) => life.load_pattern("gosper_glider_gun.txt", 255, 255),
+            _ => (),
+        }
+
         // we need this to avoid updating the same array we are iterating
         life.update_lookup();
-
-        // handle keyboard commands
-        if keyboard.key_pressed(VirtualKeyCode::Escape) {
-            exit(0);
-        }
 
         for (y, row) in image.chunks_mut(width).enumerate() {
             // skip corners for now

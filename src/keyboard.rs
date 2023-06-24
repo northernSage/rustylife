@@ -42,7 +42,10 @@ impl KeyboardState {
         }
     }
 
-    pub fn key_pressed(&self, key: VirtualKeyCode) -> bool {
-        self.virtual_key_code == key && self.state == ElementState::Pressed
+    pub fn key_pressed(&self) -> Option<VirtualKeyCode> {
+        if self.state == ElementState::Pressed {
+            return Some(self.virtual_key_code)
+        }
+        return None;
     }
 }
