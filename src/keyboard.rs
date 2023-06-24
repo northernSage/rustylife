@@ -1,9 +1,8 @@
+use pixel_canvas::canvas::CanvasInfo;
 use pixel_canvas::input::glutin::event::{ElementState, VirtualKeyCode};
 use pixel_canvas::input::{Event, WindowEvent};
-use pixel_canvas::canvas::CanvasInfo;
 
 pub struct KeyboardState {
-    //KeyboardInput { scancode: 0, state: Released, virtual_keycode: Some(A), modifiers: (empty) }
     pub scancode: u32,
     pub state: ElementState,
     pub virtual_key_code: VirtualKeyCode,
@@ -15,17 +14,22 @@ impl KeyboardState {
         Self {
             scancode: 0,
             state: ElementState::Pressed,
-            virtual_key_code: VirtualKeyCode::Key0
+            virtual_key_code: VirtualKeyCode::Key0,
         }
     }
 
     /// Handle input for the keyboard. For use with the `input` method.
-    pub fn handle_input(info: &CanvasInfo, keyboard: &mut KeyboardState, event: &Event<()>) -> bool {
+    pub fn handle_input(
+        _info: &CanvasInfo,
+        keyboard: &mut KeyboardState,
+        event: &Event<()>,
+    ) -> bool {
         match event {
             Event::WindowEvent {
-                event: WindowEvent::KeyboardInput { input, .. }, ..
+                event: WindowEvent::KeyboardInput { input, .. },
+                ..
             } => {
-                println!("{:?}", input);
+                // println!("{:?}", input);
                 keyboard.scancode = input.scancode;
                 keyboard.state = input.state;
                 match input.virtual_keycode {
@@ -36,5 +40,9 @@ impl KeyboardState {
             }
             _ => false,
         }
+    }
+
+    pub fn key_pressed(&self, key: VirtualKeyCode) -> bool {
+        self.virtual_key_code == key && self.state == ElementState::Pressed
     }
 }

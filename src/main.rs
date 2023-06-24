@@ -7,8 +7,13 @@
 * TODO: update Cells struct to work with dynamic dimensions
 */
 
+use std::process::exit;
+
 // use std::{time, thread, cell};
-use pixel_canvas::{Canvas, Color, input::{MouseState, glutin::event::{VirtualKeyCode, ElementState}}, prelude::*};
+use pixel_canvas::{
+    input::glutin::event::{ElementState, VirtualKeyCode},
+    Canvas, Color,
+};
 use rand::{self, Rng};
 
 mod keyboard;
@@ -22,6 +27,14 @@ struct Cells {
 }
 
 impl Cells {
+    fn new() -> Self {
+        let mut cells: Cells = Self {
+            states: [[false; 512]; 512],
+        };
+        cells.randomize();
+        cells
+    }
+
     fn glider(&mut self, x: usize, y: usize) {
         // ###
         // #
@@ -54,45 +67,6 @@ impl Cells {
         self.states[500][501] = true;
         self.states[500][502] = true;
     }
-
-    fn randomize(&mut self) {
-        for y in 1..511 {
-            for x in 1..511 {
-                self.states[y][x] = rand::random();
-            }
-        }
-    }
-
-    fn neighbor_indexes(&self, cell_x: usize, cell_y: usize) -> [(usize, usize); 8] {
-        [
-            (cell_y - 1, cell_x),     // bellow
-            (cell_y + 1, cell_x),     // above
-            (cell_y, cell_x + 1),     // right
-            (cell_y, cell_x - 1),     // left
-            (cell_y + 1, cell_x - 1), // left upper corner
-            (cell_y + 1, cell_x + 1), // right upper corner
-            (cell_y - 1, cell_x - 1), // left lower corner
-            (cell_y - 1, cell_x + 1), // right lower corner
-        ]
-    }
-}
-
-fn main() {
-    // Configure the window that you want to draw in. You can add an event
-    // handler to build interactive art. Input handlers for common use are
-    // provided.
-    let canvas = Canvas::new(512, 512)
-        .title("Life")
-        .state(KeyboardState::new())
-        .input(KeyboardState::handle_input);
-
-    let mut cells = Cells {
-        states: [[false; 512]; 512],
-    };
-
-    cells.randomize();
-
-    // cells.mosaic();
 
     // ###
     // cells.states[250][250] = true;
@@ -133,20 +107,99 @@ fn main() {
     // cells.glider(55, 47);
     // =======================
 
+    fn randomize(&mut self) {
+        for y in 1..511 {
+            for x in 1..511 {
+                self.states[y][x] = rand::random();
+            }
+        }
+    }
+
+    fn neighbor_indexes(&self, cell_x: usize, cell_y: usize) -> [(usize, usize); 8] {
+        [
+            (cell_y - 1, cell_x),     // bellow
+            (cell_y + 1, cell_x),     // above
+            (cell_y, cell_x + 1),     // right
+            (cell_y, cell_x - 1),     // left
+            (cell_y + 1, cell_x - 1), // left upper corner
+            (cell_y + 1, cell_x + 1), // right upper corner
+            (cell_y - 1, cell_x - 1), // left lower corner
+            (cell_y - 1, cell_x + 1), // right lower corner
+        ]
+    }
+}
+
+struct Life {
+    cells: Cells,
+    states_lookup: [[bool; 512]; 512],
+}
+
+impl Life {
+    fn new() -> Self {
+        let cells = Cells::new();
+        Self {
+            cells: Cells::new(),
+            states_lookup: cells.states.clone(),
+        }
+    }
+
+    fn update_lookup(&mut self) {
+        self.states_lookup = self.cells.states.clone();
+    }
+
+    fn apply_rules(&mut self, x: usize, y: usize) {
+        // count living neighbors
+        let mut living_neighbors = 0;
+        for (ny, nx) in self.cells.neighbor_indexes(x, y) {
+            if self.states_lookup[ny][nx] {
+                living_neighbors += 1;
+            }
+        }
+
+        // alive
+        if self.states_lookup[y][x] {
+            // stays alive if it has either 2 or 3 live neighbors
+            if living_neighbors != 2 && living_neighbors != 3 {
+                // coocentric expansion in all directions
+                // if living_neighbors < 2 {
+                self.cells.states[y][x] = false;
+            }
+        // dead
+        } else {
+            // springs to life only in the case that it has 3 live neighbors
+            if living_neighbors == 3 {
+                // coocentric expansion in all directions
+                // if living_neighbors == 2 {
+                self.cells.states[y][x] = true;
+            }
+        }
+    }
+}
+
+fn main() {
+    // Configure the window that you want to draw in. You can add an event
+    // handler to build interactive art. Input handlers for common use are
+    // provided.
+    let canvas = Canvas::new(512, 512)
+        .title("Life")
+        .state(KeyboardState::new())
+        .input(KeyboardState::handle_input);
+
+    let mut life = Life::new();
+
     canvas.render(move |keyboard, image| {
         // color to paint cell with
         let mut cell_color: Color;
-        // counter for living neighbor to apply game rules
-        let mut living_neighbors: u8;
         // Modify the `image` based on your state.
         let width = image.width() as usize;
-        // we need this to avoid updating the same array we are iterating
-        let states_lookup = cells.states.clone();
 
-        if keyboard.virtual_key_code == VirtualKeyCode::R && keyboard.state == ElementState::Pressed {
-            cells.randomize();
+        // we need this to avoid updating the same array we are iterating
+        life.update_lookup();
+
+        // handle keyboard commands
+        if keyboard.key_pressed(VirtualKeyCode::Escape) {
+            exit(0);
         }
-    
 
         for (y, row) in image.chunks_mut(width).enumerate() {
             // skip corners for now
@@ -160,33 +213,9 @@ fn main() {
                     continue;
                 }
 
-                // count living neighbors
-                living_neighbors = 0;
-                for (ny, nx) in cells.neighbor_indexes(x, y) {
-                    if states_lookup[ny][nx] {
-                        living_neighbors += 1;
-                    }
-                }
+                life.apply_rules(x, y);
 
-                // alive
-                if states_lookup[y][x] {
-                    // stays alive if it has either 2 or 3 live neighbors
-                    if living_neighbors != 2 && living_neighbors != 3 {
-                        // coocentric expansion in all directions
-                        // if living_neighbors < 2 {
-                        cells.states[y][x] = false;
-                    }
-                // dead
-                } else {
-                    // springs to life only in the case that it has 3 live neighbors
-                    if living_neighbors == 3 {
-                        // coocentric expansion in all directions
-                        // if living_neighbors == 2 {
-                        cells.states[y][x] = true;
-                    }
-                }
-
-                if cells.states[y][x] {
+                if life.cells.states[y][x] {
                     // println!("{},{},{}", (*pixel).r, (*pixel).g, (*pixel).b);
 
                     // let mut red  = ((*pixel).r + 1)  % 255;
