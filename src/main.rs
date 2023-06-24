@@ -66,45 +66,6 @@ impl Cells {
         self.states[500][502] = true;
     }
 
-    // ###
-    // cells.states[250][250] = true;
-    // cells.states[250][251] = true;
-    // cells.states[250][252] = true;
-
-    // ##
-    // #
-    // cells.states[300][300] = true;
-    // cells.states[300][299] = true;
-    // cells.states[299][299] = true;
-
-    //  #
-    // ###
-    // cells.states[200][200] = true;
-    // cells.states[199][200] = true;
-    // cells.states[199][199] = true;
-    // cells.states[199][201] = true;
-
-    // ##
-    // ##
-    // cells.states[150][150] = true;
-    // cells.states[150][149] = true;
-    // cells.states[149][150] = true;
-    // cells.states[149][149] = true;
-
-    // glider triangles
-    // cells.glider(50, 50);
-    // cells.glider(50, 45);
-    // cells.glider(55, 47);
-
-    // cells.glider(60, 60);
-    // cells.glider(60, 55);
-    // cells.glider(65, 57);
-
-    // cells.glider(50, 50);
-    // cells.glider(50, 45);
-    // cells.glider(55, 47);
-    // =======================
-
     fn randomize(&mut self) {
         for y in 1..511 {
             for x in 1..511 {
@@ -213,7 +174,8 @@ fn main() {
         match keyboard.key_pressed() {
             Some(VirtualKeyCode::Escape) => exit(0),
             Some(VirtualKeyCode::Key1) => life.cells.randomize(),
-            Some(VirtualKeyCode::Key2) => life.load_pattern("gosper_glider_gun.txt", 255, 255),
+            Some(VirtualKeyCode::Key2) => life.load_pattern("patterns/gosper_glider_gun.txt", 255, 255),
+            Some(VirtualKeyCode::Key3) => life.load_pattern("patterns/oscilator.txt", 255, 255),
             _ => (),
         }
 
