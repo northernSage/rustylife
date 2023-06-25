@@ -29,7 +29,6 @@ impl KeyboardState {
                 event: WindowEvent::KeyboardInput { input, .. },
                 ..
             } => {
-                // println!("{:?}", input);
                 keyboard.scancode = input.scancode;
                 keyboard.state = input.state;
                 match input.virtual_keycode {

@@ -1,7 +1,6 @@
 /*
 * Conway's Game of Life
 *
-* TODO: maybe paint after rules have been applied to whole table
 * TODO: implement wraping around canvas
 * TODO: figured out a way to zoom in/out of canvas for smaller patterns
 * TODO: update Cells struct to work with dynamic dimensions
@@ -76,28 +75,21 @@ impl Life {
     }
 
     fn apply_rules(&mut self, x: usize, y: usize) {
-        // count living neighbors
         let mut living_neighbors = 0;
         for (ny, nx) in self.cells.neighbor_indexes(x, y) {
             if self.states_lookup[ny][nx] == State::Alive {
                 living_neighbors += 1;
             }
         }
-
-        // alive
         if self.states_lookup[y][x] == State::Alive {
             // stays alive if it has either 2 or 3 live neighbors
             if living_neighbors != 2 && living_neighbors != 3 {
-                // coocentric expansion in all directions
-                // if living_neighbors < 2 {
+
                 self.cells.states[y][x] = State::Dead;
             }
-        // dead
         } else {
             // springs to life only in the case that it has 3 live neighbors
             if living_neighbors == 3 {
-                // coocentric expansion in all directions
-                // if living_neighbors == 2 {
                 self.cells.states[y][x] = State::Alive;
             }
         }
@@ -113,7 +105,7 @@ impl Life {
             .collect();
 
         // self.cells = Cells::new();
-
+        
         for (y, l) in pattern.iter().enumerate() {
             for (x, c) in l.iter().enumerate() {
                 if *c != '.' {
@@ -127,9 +119,6 @@ impl Life {
 }
 
 fn main() {
-    // Configure the window that you want to draw in. You can add an event
-    // handler to build interactive art. Input handlers for common use are
-    // provided.
     let canvas = Canvas::new(512, 512)
         .title("Life")
         .state(KeyboardState::new())
@@ -173,14 +162,7 @@ fn main() {
                 life.apply_rules(x, y);
 
                 if life.cells.states[y][x] == State::Alive {
-                    cell_color = Color {
-                        // r: red,
-                        // g: green,
-                        // b: blue,
-                        r: 150,
-                        g: 150,
-                        b: 150,
-                    };
+                    cell_color = Color { r: 150, g: 150, b: 150 };
                 } else {
                     cell_color = Color { r: 0, g: 0, b: 0 };
                 }
