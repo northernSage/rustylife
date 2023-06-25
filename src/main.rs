@@ -7,14 +7,11 @@
 * TODO: update Cells struct to work with dynamic dimensions
 */
 
-use std::{process::exit, fs};
+use std::{fs, process::exit};
 
 // use std::{time, thread, cell};
-use pixel_canvas::{
-    input::glutin::event::{ElementState, VirtualKeyCode},
-    Canvas, Color,
-};
-use rand::{self, Rng, prelude::Distribution, distributions::Standard};
+use pixel_canvas::{input::glutin::event::VirtualKeyCode, Canvas, Color};
+use rand::{self};
 
 mod keyboard;
 pub use crate::keyboard::KeyboardState;
@@ -22,13 +19,10 @@ pub use crate::keyboard::KeyboardState;
 #[derive(Clone, PartialEq, Copy)]
 enum State {
     Alive,
-    Dead
+    Dead,
 }
 
 struct Cells {
-    // table with the state of every single cell:
-    // alive = true
-    // dead = false
     states: [[State; 512]; 512],
 }
 
@@ -37,28 +31,6 @@ impl Cells {
         Self {
             states: [[State::Dead; 512]; 512],
         }
-    }
-
-    fn mosaic(&mut self) {
-        self.states[255][255] = State::Alive;
-        self.states[255][256] = State::Alive;
-        self.states[255][257] = State::Alive;
-        //
-        self.states[10][10] = State::Alive;
-        self.states[10][11] = State::Alive;
-        self.states[10][12] = State::Alive;
-        //
-        self.states[10][500] = State::Alive;
-        self.states[10][501] = State::Alive;
-        self.states[10][502] = State::Alive;
-        //
-        self.states[500][10] = State::Alive;
-        self.states[500][11] = State::Alive;
-        self.states[500][12] = State::Alive;
-        //
-        self.states[500][500] = State::Alive;
-        self.states[500][501] = State::Alive;
-        self.states[500][502] = State::Alive;
     }
 
     fn randomize(&mut self) {
@@ -135,10 +107,10 @@ impl Life {
         let content = fs::read_to_string(path).expect("Oops!");
 
         let pattern: Vec<Vec<char>> = content
-        .lines()
-        .skip_while(|l| l.starts_with('!'))
-        .map(|l| l.chars().collect())
-        .collect();
+            .lines()
+            .skip_while(|l| l.starts_with('!'))
+            .map(|l| l.chars().collect())
+            .collect();
 
         // self.cells = Cells::new();
 
@@ -180,7 +152,7 @@ fn main() {
                 for i in (12..490).step_by(35) {
                     life.load_pattern("patterns/frothing_puffer.txt", i, 400);
                 }
-            },
+            }
             _ => (),
         }
 
@@ -192,7 +164,6 @@ fn main() {
             if y == 0 || y == width - 1 {
                 continue;
             }
-
             for (x, pixel) in row.iter_mut().enumerate() {
                 // skip corners for now
                 if x == 0 || x == width - 1 {
@@ -202,16 +173,6 @@ fn main() {
                 life.apply_rules(x, y);
 
                 if life.cells.states[y][x] == State::Alive {
-                    // let mut red  = ((*pixel).r + 1)  % 255;
-                    // let mut green  = ((*pixel).g + 1) % 255;
-                    // let mut blue = ((*pixel).b + 1) % 255;
-
-                    // if red == 0 && green == 0 && blue == 0 {
-                    //     red = rand::thread_rng().gen_range(0..50);
-                    //     green = rand::thread_rng().gen_range(0..252);
-                    //     blue = rand::thread_rng().gen_range(0..50);
-                    // }
-
                     cell_color = Color {
                         // r: red,
                         // g: green,
